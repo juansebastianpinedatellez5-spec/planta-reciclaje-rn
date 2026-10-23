@@ -1,29 +1,42 @@
 // PANTALLA: HomeScreen
-// Pantalla principal. Tiene un header y una lista de tarjetas.
+// Header + lista de tarjetas con FlatList.
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   StyleSheet,
   StatusBar,
   Platform,
   Alert,
+  ListRenderItem,
 } from 'react-native';
 import { Recepcion } from '../types';
 import { RecepcionCard } from '../components/RecepcionCard';
 import { RECEPCIONES } from '../data/mockData';
+import { COLORS, TYPOGRAPHY, SPACING } from '../theme';
 
 const TITULO = 'Planta de Reciclaje';
 const SUBTITULO = 'Recepciones del dia';
 
+// Espacio entre tarjetas. Esta afuera del componente para que no se cree cada vez.
+function Separador(): React.JSX.Element {
+  return <View style={styles.separador} />;
+}
+
+// Se ejecuta cuando tocan una tarjeta. Esta afuera del componente: no depende de nada.
+function handlePress(recepcion: Recepcion): void {
+  Alert.alert(recepcion.placa, `Conductor: ${recepcion.conductor}`);
+}
+
 export function HomeScreen(): React.JSX.Element {
-  // Se ejecuta cuando tocan una tarjeta.
-  // Por ahora solo muestra un aviso. En la semana 3 sera navegacion.
-  function handlePress(recepcion: Recepcion): void {
-    Alert.alert(recepcion.placa, `Conductor: ${recepcion.conductor}`);
-  }
+  // renderItem: le dice a FlatList como dibujar cada fila.
+  // useCallback = la funcion no se vuelve a crear en cada render.
+  const renderItem: ListRenderItem<Recepcion> = useCallback(
+    ({ item }) => <RecepcionCard recepcion={item} onPress={handlePress} />,
+    [],
+  );
 
   return (
     <View style={styles.screen}>
@@ -34,55 +47,48 @@ export function HomeScreen(): React.JSX.Element {
         <Text style={styles.headerSubtitle}>{SUBTITULO}</Text>
       </View>
 
-      {/* ScrollView: permite bajar con el dedo si hay muchas tarjetas */}
-      <ScrollView
-        style={styles.list}
+      {/* FlatList solo dibuja las filas que se ven en pantalla. ScrollView dibuja todas. */}
+      <FlatList
+        data={RECEPCIONES}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        ItemSeparatorComponent={Separador}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-      >
-        {/* map = por cada recepcion, dibujo una tarjeta */}
-        {RECEPCIONES.map((recepcion) => (
-          <RecepcionCard
-            key={recepcion.id}
-            recepcion={recepcion}
-            onPress={handlePress}
-          />
-        ))}
-      </ScrollView>
+      />
     </View>
   );
 }
 
 // Espacio de arriba para que el header no quede debajo de la barra del telefono.
-// SafeAreaView de React Native esta deprecado, por eso se hace a mano.
 const TOP_SPACE = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 50;
 
 const styles = StyleSheet.create({
   screen: {
-    flex: 1, // flex 1 = ocupa toda la pantalla
-    backgroundColor: '#0d1117',
+    flex: 1,
+    backgroundColor: COLORS.background,
     paddingTop: TOP_SPACE,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingHorizontal: SPACING.base,
+    paddingVertical: SPACING.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#30363d',
+    borderBottomColor: COLORS.border,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: TYPOGRAPHY.size.xxl,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.textPrimary,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#8b949e',
-    marginTop: 4,
-  },
-  list: {
-    flex: 1,
+    fontSize: TYPOGRAPHY.size.sm,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
   },
   listContent: {
-    padding: 16,
+    padding: SPACING.base,
+  },
+  separador: {
+    height: SPACING.md,
   },
 });
