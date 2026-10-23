@@ -20,6 +20,9 @@ export const COLORS = {
 
   // aviso
   warning: '#d29922',
+  
+  // color de la pestana activa (lo pide el bootcamp)
+  tabActive: '#61DAFB',
 } as const;
 
 // Tamanos y grosor de letra
