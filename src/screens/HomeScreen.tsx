@@ -1,5 +1,6 @@
 // PANTALLA: HomeScreen
-// Header + buscador + lista de tarjetas con FlatList.
+// Buscador + lista de tarjetas con FlatList.
+// Al tocar una tarjeta, navega al detalle y le manda el id y la placa.
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
@@ -11,30 +12,25 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   StyleSheet,
-  StatusBar,
   Platform,
-  Alert,
   ListRenderItem,
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParamList } from '../navigation/types';
 import { Recepcion } from '../types';
 import { RecepcionCard } from '../components/RecepcionCard';
 import { RECEPCIONES } from '../data/mockData';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
-const TITULO = 'Planta de Reciclaje';
-const SUBTITULO = 'Recepciones del dia';
+// Props de esta pantalla: el Stack le da "navigation".
+type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, 'HomeList'>;
 
 // Espacio entre tarjetas. Esta afuera del componente para que no se cree cada vez.
 function Separador(): React.JSX.Element {
   return <View style={styles.separador} />;
 }
 
-// Se ejecuta cuando tocan una tarjeta. Esta afuera del componente: no depende de nada.
-function handlePress(recepcion: Recepcion): void {
-  Alert.alert(recepcion.placa, `Conductor: ${recepcion.conductor}`);
-}
-
-export function HomeScreen(): React.JSX.Element {
+export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
   // query = lo que el usuario escribe en el buscador.
   const [query, setQuery] = useState<string>('');
 
@@ -52,11 +48,22 @@ export function HomeScreen(): React.JSX.Element {
     );
   }, [query]);
 
+  // Al tocar una tarjeta: voy al detalle y mando el id y la placa como params.
+  const handlePress = useCallback(
+    (recepcion: Recepcion): void => {
+      navigation.navigate('HomeDetail', {
+        id: recepcion.id,
+        name: recepcion.placa,
+      });
+    },
+    [navigation],
+  );
+
   // renderItem: le dice a FlatList como dibujar cada fila.
   // useCallback = la funcion no se vuelve a crear en cada render.
   const renderItem: ListRenderItem<Recepcion> = useCallback(
     ({ item }) => <RecepcionCard recepcion={item} onPress={handlePress} />,
-    [],
+    [handlePress],
   );
 
   // Mensaje cuando la busqueda no encuentra nada.
@@ -86,13 +93,6 @@ export function HomeScreen(): React.JSX.Element {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="light-content" />
-
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{TITULO}</Text>
-        <Text style={styles.headerSubtitle}>{SUBTITULO}</Text>
-      </View>
-
       {/* Buscador: cada letra que escribe actualiza "query" */}
       <View style={styles.searchContainer}>
         <TextInput
@@ -129,30 +129,10 @@ export function HomeScreen(): React.JSX.Element {
   );
 }
 
-// Espacio de arriba para que el header no quede debajo de la barra del telefono.
-const TOP_SPACE = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 50;
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: TOP_SPACE,
-  },
-  header: {
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  headerTitle: {
-    fontSize: TYPOGRAPHY.size.xxl,
-    fontWeight: TYPOGRAPHY.weight.bold,
-    color: COLORS.textPrimary,
-  },
-  headerSubtitle: {
-    fontSize: TYPOGRAPHY.size.sm,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
   },
   searchContainer: {
     flexDirection: 'row',
