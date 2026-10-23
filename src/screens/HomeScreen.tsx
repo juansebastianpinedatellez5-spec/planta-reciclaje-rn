@@ -27,7 +27,7 @@ export function HomeScreen(): React.JSX.Element {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="light-content" backgroundColor="#0d1117" />
+      <StatusBar barStyle="light-content" />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{TITULO}</Text>
