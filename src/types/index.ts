@@ -16,5 +16,4 @@ export interface Recepcion {
   material: Material;
   pesoKg: number; // peso neto en kilos
   estado: Estado;
-  imageUri: string;
 }
