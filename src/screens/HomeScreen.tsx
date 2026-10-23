@@ -7,6 +7,9 @@ import {
   Text,
   FlatList,
   TextInput,
+  Pressable,
+  Keyboard,
+  KeyboardAvoidingView,
   StyleSheet,
   StatusBar,
   Platform,
@@ -70,8 +73,19 @@ export function HomeScreen(): React.JSX.Element {
     [query],
   );
 
+  // Borra el texto y esconde el teclado.
+  function limpiarBusqueda(): void {
+    setQuery('');
+    Keyboard.dismiss();
+  }
+
   return (
-    <View style={styles.screen}>
+    // KeyboardAvoidingView: cuando sale el teclado, sube el contenido para que no lo tape.
+    // iOS usa "padding", Android usa "height".
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <StatusBar barStyle="light-content" />
 
       <View style={styles.header}>
@@ -91,6 +105,12 @@ export function HomeScreen(): React.JSX.Element {
           autoCapitalize="none"
           autoCorrect={false}
         />
+        {/* El boton Limpiar solo sale si hay texto */}
+        {query !== '' && (
+          <Pressable style={styles.clearButton} onPress={limpiarBusqueda}>
+            <Text style={styles.clearText}>Limpiar</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* FlatList solo dibuja las filas que se ven en pantalla. ScrollView dibuja todas. */}
@@ -102,8 +122,10 @@ export function HomeScreen(): React.JSX.Element {
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -133,12 +155,16 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
   searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
     paddingHorizontal: SPACING.base,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.borderLight,
   },
   searchInput: {
+    flex: 1,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -147,6 +173,15 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     color: COLORS.textPrimary,
     fontSize: TYPOGRAPHY.size.base,
+  },
+  clearButton: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+  },
+  clearText: {
+    fontSize: TYPOGRAPHY.size.base,
+    color: COLORS.accent,
+    fontWeight: TYPOGRAPHY.weight.semibold,
   },
   listContent: {
     padding: SPACING.base,
