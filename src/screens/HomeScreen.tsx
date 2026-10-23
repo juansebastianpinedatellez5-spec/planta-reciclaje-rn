@@ -56,6 +56,20 @@ export function HomeScreen(): React.JSX.Element {
     [],
   );
 
+  // Mensaje cuando la busqueda no encuentra nada.
+  // useCallback con [query] = se vuelve a crear solo si cambia el texto.
+  const renderEmpty = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Sin resultados para "{query}"</Text>
+        <Text style={styles.emptySubText}>
+          Prueba con otra placa, otro conductor o un material: plastico, carton, vidrio o metal.
+        </Text>
+      </View>
+    ),
+    [query],
+  );
+
   return (
     <View style={styles.screen}>
       <StatusBar barStyle="light-content" />
@@ -85,6 +99,7 @@ export function HomeScreen(): React.JSX.Element {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ItemSeparatorComponent={Separador}
+        ListEmptyComponent={renderEmpty}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
@@ -135,6 +150,23 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: SPACING.base,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingTop: SPACING.xxl,
+    paddingHorizontal: SPACING.xxl,
+  },
+  emptyText: {
+    fontSize: TYPOGRAPHY.size.md,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
+  emptySubText: {
+    fontSize: TYPOGRAPHY.size.sm,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
   separador: {
     height: SPACING.md,
