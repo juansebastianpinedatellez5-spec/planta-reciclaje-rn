@@ -1,7 +1,7 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { HomeScreen } from './src/screens/HomeScreen';
 
-// Paso 1: App minima. Solo prueba que el proyecto arranca.
+// App solo dibuja la pantalla principal.
 export default function App(): React.JSX.Element {
-  return <Text>Planta de Reciclaje</Text>;
+  return <HomeScreen />;
 }
