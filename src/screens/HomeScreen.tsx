@@ -1,11 +1,12 @@
 // PANTALLA: HomeScreen
-// Header + lista de tarjetas con FlatList.
+// Header + buscador + lista de tarjetas con FlatList.
 
-import React, { useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
+  TextInput,
   StyleSheet,
   StatusBar,
   Platform,
@@ -15,7 +16,7 @@ import {
 import { Recepcion } from '../types';
 import { RecepcionCard } from '../components/RecepcionCard';
 import { RECEPCIONES } from '../data/mockData';
-import { COLORS, TYPOGRAPHY, SPACING } from '../theme';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
 const TITULO = 'Planta de Reciclaje';
 const SUBTITULO = 'Recepciones del dia';
@@ -31,6 +32,23 @@ function handlePress(recepcion: Recepcion): void {
 }
 
 export function HomeScreen(): React.JSX.Element {
+  // query = lo que el usuario escribe en el buscador.
+  const [query, setQuery] = useState<string>('');
+
+  // Lista filtrada. useMemo = solo se vuelve a calcular cuando cambia "query".
+  const recepcionesFiltradas = useMemo(() => {
+    const texto = query.trim().toLowerCase(); // minusculas = no importa si escribe mayusculas
+    if (texto === '') {
+      return RECEPCIONES; // sin texto = mostrar todo
+    }
+    return RECEPCIONES.filter(
+      (r) =>
+        r.placa.toLowerCase().includes(texto) ||
+        r.conductor.toLowerCase().includes(texto) ||
+        r.material.includes(texto),
+    );
+  }, [query]);
+
   // renderItem: le dice a FlatList como dibujar cada fila.
   // useCallback = la funcion no se vuelve a crear en cada render.
   const renderItem: ListRenderItem<Recepcion> = useCallback(
@@ -47,9 +65,23 @@ export function HomeScreen(): React.JSX.Element {
         <Text style={styles.headerSubtitle}>{SUBTITULO}</Text>
       </View>
 
+      {/* Buscador: cada letra que escribe actualiza "query" */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar por placa, conductor o material"
+          placeholderTextColor={COLORS.textSecondary}
+          value={query}
+          onChangeText={setQuery}
+          returnKeyType="search"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+      </View>
+
       {/* FlatList solo dibuja las filas que se ven en pantalla. ScrollView dibuja todas. */}
       <FlatList
-        data={RECEPCIONES}
+        data={recepcionesFiltradas}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ItemSeparatorComponent={Separador}
@@ -84,6 +116,22 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.size.sm,
     color: COLORS.textSecondary,
     marginTop: SPACING.xs,
+  },
+  searchContainer: {
+    paddingHorizontal: SPACING.base,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
+  },
+  searchInput: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.base,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 10,
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.size.base,
   },
   listContent: {
     padding: SPACING.base,
