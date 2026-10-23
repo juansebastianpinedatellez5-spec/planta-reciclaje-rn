@@ -3,8 +3,16 @@
 // Se usa una vez por cada recepcion en HomeScreen.
 
 import React from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  StyleSheet,
+  ImageSourcePropType,
+} from 'react-native';
 import { Recepcion, Material, Estado } from '../types';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
 // Textos bonitos para mostrar en pantalla.
 const NOMBRE_MATERIAL: Record<Material, string> = {
@@ -12,6 +20,14 @@ const NOMBRE_MATERIAL: Record<Material, string> = {
   carton: 'Carton',
   vidrio: 'Vidrio',
   metal: 'Metal',
+};
+
+// Una imagen local por cada material.
+const IMAGEN_MATERIAL: Record<Material, ImageSourcePropType> = {
+  plastico: require('../../assets/images/plastico.png'),
+  carton: require('../../assets/images/carton.png'),
+  vidrio: require('../../assets/images/vidrio.png'),
+  metal: require('../../assets/images/metal.png'),
 };
 
 const NOMBRE_ESTADO: Record<Estado, string> = {
@@ -37,7 +53,7 @@ export function RecepcionCard({
       onPress={() => onPress(recepcion)}
     >
       <Image
-        source={{ uri: recepcion.imageUri }}
+        source={IMAGEN_MATERIAL[recepcion.material]}
         style={styles.image}
         resizeMode="cover"
       />
@@ -60,33 +76,33 @@ export function RecepcionCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#161b22',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#30363d',
+    borderColor: COLORS.border,
   },
   // Se aplica solo mientras el dedo esta encima.
   cardPressed: {
-    backgroundColor: '#21262d',
+    backgroundColor: COLORS.surfaceAlt,
   },
+  // aspectRatio 3/2 = misma proporcion de la imagen (600x400), no se corta.
   image: {
     width: '100%',
-    height: 160,
+    aspectRatio: 3 / 2,
   },
   body: {
-    padding: 16,
-    gap: 4,
+    padding: SPACING.base,
+    gap: SPACING.xs,
   },
   placa: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: TYPOGRAPHY.size.lg,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.textPrimary,
   },
   conductor: {
-    fontSize: 14,
-    color: '#8b949e',
+    fontSize: TYPOGRAPHY.size.sm,
+    color: COLORS.textSecondary,
   },
   // flexDirection row = los hijos van uno al lado del otro.
   // justifyContent space-between = uno a cada extremo.
@@ -94,20 +110,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   material: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#3fb950',
+    fontSize: TYPOGRAPHY.size.base,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.accent,
   },
   peso: {
-    fontSize: 16,
-    color: '#ffffff',
+    fontSize: TYPOGRAPHY.size.base,
+    color: COLORS.textPrimary,
   },
   estado: {
-    fontSize: 12,
-    color: '#d29922',
-    marginTop: 4,
+    fontSize: TYPOGRAPHY.size.sm,
+    color: COLORS.warning,
+    marginTop: SPACING.xs,
   },
 });
