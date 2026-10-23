@@ -3,38 +3,14 @@
 // Se usa una vez por cada recepcion en HomeScreen.
 
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  StyleSheet,
-  ImageSourcePropType,
-} from 'react-native';
-import { Recepcion, Material, Estado } from '../types';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { Recepcion } from '../types';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
-
-// Textos bonitos para mostrar en pantalla.
-const NOMBRE_MATERIAL: Record<Material, string> = {
-  plastico: 'Plastico',
-  carton: 'Carton',
-  vidrio: 'Vidrio',
-  metal: 'Metal',
-};
-
-// Una imagen local por cada material.
-const IMAGEN_MATERIAL: Record<Material, ImageSourcePropType> = {
-  plastico: require('../../assets/images/plastico.png'),
-  carton: require('../../assets/images/carton.png'),
-  vidrio: require('../../assets/images/vidrio.png'),
-  metal: require('../../assets/images/metal.png'),
-};
-
-const NOMBRE_ESTADO: Record<Estado, string> = {
-  en_bascula: 'En bascula',
-  descargando: 'Descargando',
-  finalizado: 'Finalizado',
-};
+import {
+  NOMBRE_MATERIAL,
+  NOMBRE_ESTADO,
+  IMAGEN_MATERIAL,
+} from '../data/materiales';
 
 // Props = lo que el componente recibe desde afuera.
 interface RecepcionCardProps {
