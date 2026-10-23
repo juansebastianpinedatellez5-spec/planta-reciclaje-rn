@@ -18,3 +18,12 @@ export const RECEPCIONES: Recepcion[] = [
   { id: '11', placa: 'LKJ-481', conductor: 'Mauricio Leon', material: 'metal', pesoKg: 3050, estado: 'descargando' },
   { id: '12', placa: 'MNB-296', conductor: 'Camila Ortiz', material: 'vidrio', pesoKg: 3750, estado: 'finalizado' },
 ];
+
+
+// Camiones prioritarios: los que todavia estan en proceso.
+// Por ahora son fijos. En la semana 4 el usuario podra marcarlos.
+const IDS_PRIORITARIOS = ['1', '6', '10', '11'];
+
+export const PRIORITARIAS: Recepcion[] = RECEPCIONES.filter((r) =>
+  IDS_PRIORITARIOS.includes(r.id),
+);
