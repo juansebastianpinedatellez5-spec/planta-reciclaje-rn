@@ -20,10 +20,3 @@ export const RECEPCIONES: Recepcion[] = [
 ];
 
 
-// Camiones prioritarios: los que todavia estan en proceso.
-// Por ahora son fijos. En la semana 4 el usuario podra marcarlos.
-const IDS_PRIORITARIOS = ['1', '6', '10', '11'];
-
-export const PRIORITARIAS: Recepcion[] = RECEPCIONES.filter((r) =>
-  IDS_PRIORITARIOS.includes(r.id),
-);
