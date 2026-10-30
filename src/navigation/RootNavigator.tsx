@@ -2,7 +2,7 @@
 //
 //   Tab (pestanas de abajo)
 //     Home      -> Stack: HomeList (lista) -> HomeDetail (detalle)
-//     Favorites -> FavoritesScreen (prioritarios)
+//     Favorites -> FavoritesScreen (prioritarios, con badge del store)
 
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
 import { DetailScreen } from '../screens/DetailScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
+import { usePrioritariasStore } from '../stores/prioritariasStore';
 import { COLORS, TYPOGRAPHY } from '../theme';
 import type { HomeStackParamList, RootTabParamList } from './types';
 
@@ -49,6 +50,11 @@ function HomeStackNavigator(): React.JSX.Element {
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export function RootNavigator(): React.JSX.Element {
+  // Cuantos camiones prioritarios hay. Se actualiza solo cuando cambia el store.
+  const cantidadPrioritarias = usePrioritariasStore(
+    (state) => state.recepciones.length,
+  );
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -82,6 +88,12 @@ export function RootNavigator(): React.JSX.Element {
         component={FavoritesScreen}
         options={{
           tabBarLabel: 'Prioritarias',
+          // Badge: el numerito sobre el icono. undefined = no se muestra.
+          tabBarBadge: cantidadPrioritarias > 0 ? cantidadPrioritarias : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: COLORS.accent,
+            color: COLORS.background,
+          },
           // Esta pestana no tiene Stack, asi que aqui si se enciende el header.
           headerShown: true,
           title: 'Camiones prioritarios',
