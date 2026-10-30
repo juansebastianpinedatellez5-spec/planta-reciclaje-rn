@@ -1,10 +1,12 @@
 // COMPONENTE: RecepcionCard
 // Una tarjeta que muestra un camion que llego a la planta.
-// Se usa una vez por cada recepcion en HomeScreen.
+// Se usa en la lista y en prioritarias.
+// Si el camion es prioritario, muestra una estrella (lee el store).
 
 import React from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { Recepcion } from '../types';
+import { usePrioritariasStore } from '../stores/prioritariasStore';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 import {
   NOMBRE_MATERIAL,
@@ -22,6 +24,12 @@ export function RecepcionCard({
   recepcion,
   onPress,
 }: RecepcionCardProps): React.JSX.Element {
+  // Selector: pregunta al store solo "este camion es prioritario?" (true o false).
+  // Esta tarjeta se redibuja solo si esa respuesta cambia.
+  const esPrioritaria = usePrioritariasStore((state) =>
+    state.recepciones.some((r) => r.id === recepcion.id),
+  );
+
   return (
     // Pressable: cuando lo tocan, "pressed" es true y la tarjeta cambia de color.
     <Pressable
@@ -44,7 +52,11 @@ export function RecepcionCard({
           <Text style={styles.peso}>{recepcion.pesoKg} kg</Text>
         </View>
 
-        <Text style={styles.estado}>{NOMBRE_ESTADO[recepcion.estado]}</Text>
+        {/* Fila: estado a la izquierda, estrella a la derecha si es prioritario */}
+        <View style={styles.row}>
+          <Text style={styles.estado}>{NOMBRE_ESTADO[recepcion.estado]}</Text>
+          {esPrioritaria && <Text style={styles.prioritario}>★ Prioritario</Text>}
+        </View>
       </View>
     </Pressable>
   );
@@ -100,6 +112,10 @@ const styles = StyleSheet.create({
   estado: {
     fontSize: TYPOGRAPHY.size.sm,
     color: COLORS.warning,
-    marginTop: SPACING.xs,
+  },
+  prioritario: {
+    fontSize: TYPOGRAPHY.size.sm,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.tabActive,
   },
 });
