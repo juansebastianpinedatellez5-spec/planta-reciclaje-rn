@@ -51,8 +51,8 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export function RootNavigator(): React.JSX.Element {
   // Cuantos camiones prioritarios hay. Se actualiza solo cuando cambia el store.
-  const cantidadPrioritarias = usePrioritariasStore(
-    (state) => state.recepciones.length,
+    const cantidadPrioritarias = usePrioritariasStore(
+    (state) => state.ids.length,
   );
 
   return (

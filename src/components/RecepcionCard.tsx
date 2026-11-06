@@ -26,8 +26,8 @@ export function RecepcionCard({
 }: RecepcionCardProps): React.JSX.Element {
   // Selector: pregunta al store solo "este camion es prioritario?" (true o false).
   // Esta tarjeta se redibuja solo si esa respuesta cambia.
-  const esPrioritaria = usePrioritariasStore((state) =>
-    state.recepciones.some((r) => r.id === recepcion.id),
+    const esPrioritaria = usePrioritariasStore((state) =>
+    state.ids.includes(recepcion.id),
   );
 
   return (

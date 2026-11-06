@@ -2,7 +2,7 @@
 // Segunda pestana. Muestra los camiones prioritarios que estan en el store.
 // Al tocar uno, abre su detalle en la pestana Home.
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { RootTabParamList } from '../navigation/types';
 import { Recepcion } from '../types';
 import { RecepcionCard } from '../components/RecepcionCard';
+import { RECEPCIONES } from '../data/mockData';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
 import { COLORS, TYPOGRAPHY, SPACING } from '../theme';
 
@@ -30,11 +31,17 @@ export function FavoritesScreen({
 }: FavoritesScreenProps): React.JSX.Element {
   // Selectores: cada uno pide SOLO lo que necesita del store.
   // Esta pantalla se redibuja solo si cambia la lista o la accion.
-  const recepciones = usePrioritariasStore((state) => state.recepciones);
+  const ids = usePrioritariasStore((state) => state.ids);
   const limpiarPrioritarias = usePrioritariasStore(
     (state) => state.limpiarPrioritarias,
   );
 
+  // Del store solo salen los ids. Con ellos busco los camiones completos.
+  const recepciones = useMemo(
+    () => RECEPCIONES.filter((r) => ids.includes(r.id)),
+    [ids],
+  );
+  
   // Al tocar una tarjeta: voy a la pestana Home, pantalla HomeDetail, con sus params.
   const handlePress = useCallback(
     (recepcion: Recepcion): void => {

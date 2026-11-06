@@ -48,9 +48,7 @@ export function DetailScreen(): React.JSX.Element {
 
   // Selectores del store. Los hooks van ANTES de cualquier return.
   // esPrioritaria = true si este camion ya esta en la lista de prioritarios.
-  const esPrioritaria = usePrioritariasStore((state) =>
-    state.recepciones.some((r) => r.id === id),
-  );
+    const esPrioritaria = usePrioritariasStore((state) => state.ids.includes(id));
   const agregarPrioritaria = usePrioritariasStore(
     (state) => state.agregarPrioritaria,
   );
@@ -71,14 +69,11 @@ export function DetailScreen(): React.JSX.Element {
   }
 
   // Si ya es prioritario lo quita. Si no, lo agrega.
-  function cambiarPrioritaria(): void {
-    if (recepcion === undefined) {
-      return;
-    }
+    function cambiarPrioritaria(): void {
     if (esPrioritaria) {
-      quitarPrioritaria(recepcion.id);
+      quitarPrioritaria(id);
     } else {
-      agregarPrioritaria(recepcion);
+      agregarPrioritaria(id);
     }
   }
 
