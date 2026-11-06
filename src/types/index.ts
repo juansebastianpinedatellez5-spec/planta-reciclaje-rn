@@ -17,3 +17,7 @@ export interface Recepcion {
   pesoKg: number; // peso neto en kilos
   estado: Estado;
 }
+
+// Lo que se manda al servidor para crear un camion.
+// Es Recepcion sin "id": el id lo pone el servidor.
+export type CrearRecepcionPayload = Omit<Recepcion, 'id'>;
