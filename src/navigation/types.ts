@@ -12,6 +12,8 @@ export type HomeStackParamList = {
     id: string;
     name: string;
   };
+  // El formulario para crear un camion no recibe datos.
+  HomeCreate: undefined;
 };
 
 // Pestanas de abajo.
