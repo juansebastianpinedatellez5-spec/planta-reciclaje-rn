@@ -1,12 +1,14 @@
 // PANTALLA: DetailScreen
 // Muestra todos los datos de un camion.
 // Recibe "id" y "name" desde la lista (params de navegacion).
+// Los datos frescos vienen de la API con useQuery (useRecepcion).
 // Tiene un boton para marcar o quitar el camion de prioritarios (store Zustand).
 
 import React from 'react';
 import {
   View,
   Text,
+  ActivityIndicator,
   Image,
   ScrollView,
   Pressable,
@@ -14,7 +16,7 @@ import {
 } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '../navigation/types';
-import { RECEPCIONES } from '../data/mockData';
+import { useRecepcion } from '../hooks/useRecepciones';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
 import {
   NOMBRE_MATERIAL,
@@ -48,7 +50,7 @@ export function DetailScreen(): React.JSX.Element {
 
   // Selectores del store. Los hooks van ANTES de cualquier return.
   // esPrioritaria = true si este camion ya esta en la lista de prioritarios.
-    const esPrioritaria = usePrioritariasStore((state) => state.ids.includes(id));
+  const esPrioritaria = usePrioritariasStore((state) => state.ids.includes(id));
   const agregarPrioritaria = usePrioritariasStore(
     (state) => state.agregarPrioritaria,
   );
@@ -56,20 +58,32 @@ export function DetailScreen(): React.JSX.Element {
     (state) => state.quitarPrioritaria,
   );
 
-  // Con el id busco el camion completo en los datos.
-  const recepcion = RECEPCIONES.find((r) => r.id === id);
+  // Pide este camion a la API.
+  const { data: recepcion, isLoading, isError, refetch } = useRecepcion(id);
 
-  // Si no existe, aviso.
-  if (recepcion === undefined) {
+  // 1. Cargando.
+  if (isLoading) {
     return (
       <View style={styles.vacio}>
-        <Text style={styles.vacioTexto}>No se encontro la recepcion {name}</Text>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
+
+  // 2. Error, o el camion no existe: aviso con boton para reintentar.
+  if (isError || recepcion === undefined) {
+    return (
+      <View style={styles.vacio}>
+        <Text style={styles.errorTitulo}>No se pudo cargar {name}</Text>
+        <Pressable style={styles.reintentar} onPress={() => refetch()}>
+          <Text style={styles.reintentarTexto}>Reintentar</Text>
+        </Pressable>
       </View>
     );
   }
 
   // Si ya es prioritario lo quita. Si no, lo agrega.
-    function cambiarPrioritaria(): void {
+  function cambiarPrioritaria(): void {
     if (esPrioritaria) {
       quitarPrioritaria(id);
     } else {
@@ -196,10 +210,24 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: SPACING.md,
     backgroundColor: COLORS.background,
   },
-  vacioTexto: {
+  errorTitulo: {
+    fontSize: TYPOGRAPHY.size.md,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.warning,
+    textAlign: 'center',
+  },
+  reintentar: {
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  reintentarTexto: {
     fontSize: TYPOGRAPHY.size.base,
-    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.background,
   },
 });
