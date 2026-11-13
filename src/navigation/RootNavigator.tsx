@@ -2,14 +2,17 @@
 //
 //   Tab (pestanas de abajo)
 //     Home      -> Stack: HomeList (lista) -> HomeDetail (detalle)
+//                                          -> HomeCreate (formulario)
 //     Favorites -> FavoritesScreen (prioritarios, con badge del store)
 
 import React from 'react';
+import { Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
 import { DetailScreen } from '../screens/DetailScreen';
+import { CreateScreen } from '../screens/CreateScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
 import { COLORS, TYPOGRAPHY } from '../theme';
@@ -33,13 +36,27 @@ function HomeStackNavigator(): React.JSX.Element {
       <HomeStack.Screen
         name="HomeList"
         component={HomeScreen}
-        options={{ title: 'Recepciones de la planta' }}
+        options={({ navigation }) => ({
+          title: 'Recepciones de la planta',
+          // Boton "+" arriba a la derecha: abre el formulario para crear.
+          headerRight: () => (
+            <Pressable onPress={() => navigation.navigate('HomeCreate')}>
+              <Ionicons name="add-circle-outline" size={28} color={COLORS.accent} />
+            </Pressable>
+          ),
+        })}
       />
       {/* Segunda pantalla: el detalle. El titulo sale de los params. */}
       <HomeStack.Screen
         name="HomeDetail"
         component={DetailScreen}
         options={({ route }) => ({ title: `Recepcion ${route.params.name}` })}
+      />
+      {/* Tercera pantalla: el formulario para crear un camion. */}
+      <HomeStack.Screen
+        name="HomeCreate"
+        component={CreateScreen}
+        options={{ title: 'Nueva recepcion' }}
       />
     </HomeStack.Navigator>
   );
@@ -51,7 +68,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export function RootNavigator(): React.JSX.Element {
   // Cuantos camiones prioritarios hay. Se actualiza solo cuando cambia el store.
-    const cantidadPrioritarias = usePrioritariasStore(
+  const cantidadPrioritarias = usePrioritariasStore(
     (state) => state.ids.length,
   );
 
