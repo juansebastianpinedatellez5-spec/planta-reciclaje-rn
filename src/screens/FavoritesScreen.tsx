@@ -1,11 +1,13 @@
 // PANTALLA: FavoritesScreen
-// Segunda pestana. Muestra los camiones prioritarios que estan en el store.
+// Segunda pestana. Muestra los camiones prioritarios.
+// El store da los ids marcados. TanStack Query da los datos de la API.
 // Al tocar uno, abre su detalle en la pestana Home.
 
 import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -15,9 +17,9 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { RootTabParamList } from '../navigation/types';
 import { Recepcion } from '../types';
 import { RecepcionCard } from '../components/RecepcionCard';
-import { RECEPCIONES } from '../data/mockData';
+import { useRecepciones } from '../hooks/useRecepciones';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
-import { COLORS, TYPOGRAPHY, SPACING } from '../theme';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
 type FavoritesScreenProps = BottomTabScreenProps<RootTabParamList, 'Favorites'>;
 
@@ -32,16 +34,18 @@ export function FavoritesScreen({
   // Selectores: cada uno pide SOLO lo que necesita del store.
   // Esta pantalla se redibuja solo si cambia la lista o la accion.
   const ids = usePrioritariasStore((state) => state.ids);
+  // Los camiones salen de la API (misma consulta que la lista: se reutiliza el cache).
+  const { data, isLoading, isError, refetch } = useRecepciones();
   const limpiarPrioritarias = usePrioritariasStore(
     (state) => state.limpiarPrioritarias,
   );
 
   // Del store solo salen los ids. Con ellos busco los camiones completos.
   const recepciones = useMemo(
-    () => RECEPCIONES.filter((r) => ids.includes(r.id)),
-    [ids],
+    () => (data ?? []).filter((r) => ids.includes(r.id)),
+    [data, ids],
   );
-  
+
   // Al tocar una tarjeta: voy a la pestana Home, pantalla HomeDetail, con sus params.
   const handlePress = useCallback(
     (recepcion: Recepcion): void => {
@@ -57,6 +61,27 @@ export function FavoritesScreen({
     ({ item }) => <RecepcionCard recepcion={item} onPress={handlePress} />,
     [handlePress],
   );
+
+  // Cargando la primera vez.
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
+
+  // Error al pedir los datos.
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.emptyTitle}>No se pudieron cargar los camiones</Text>
+        <Pressable style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryText}>Reintentar</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <FlatList
@@ -123,6 +148,25 @@ const styles = StyleSheet.create({
   },
   separador: {
     height: SPACING.md,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.background,
+  },
+  retryButton: {
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  retryText: {
+    fontSize: TYPOGRAPHY.size.base,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.background,
   },
   emptyContainer: {
     alignItems: 'center',
