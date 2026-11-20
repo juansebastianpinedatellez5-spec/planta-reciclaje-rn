@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
 import { DetailScreen } from '../screens/DetailScreen';
 import { CreateScreen } from '../screens/CreateScreen';
+import { EditScreen } from '../screens/EditScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
 import { COLORS, TYPOGRAPHY } from '../theme';
@@ -57,6 +58,12 @@ function HomeStackNavigator(): React.JSX.Element {
         name="HomeCreate"
         component={CreateScreen}
         options={{ title: 'Nueva recepcion' }}
+      />
+            {/* Cuarta pantalla: el formulario para editar. El titulo sale de los params. */}
+      <HomeStack.Screen
+        name="HomeEdit"
+        component={EditScreen}
+        options={({ route }) => ({ title: `Editar ${route.params.name}` })}
       />
     </HomeStack.Navigator>
   );
