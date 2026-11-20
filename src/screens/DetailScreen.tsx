@@ -3,6 +3,7 @@
 // Recibe "id" y "name" desde la lista (params de navegacion).
 // Los datos frescos vienen de la API con useQuery (useRecepcion).
 // Tiene un boton para marcar o quitar el camion de prioritarios (store Zustand).
+// Tiene un boton para ir a editar el camion.
 
 import React from 'react';
 import {
@@ -14,7 +15,8 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '../navigation/types';
 import { useRecepcion } from '../hooks/useRecepciones';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
@@ -27,6 +29,8 @@ import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
 // Tipo de "route" para esta pantalla. Asi TypeScript sabe que params hay.
 type DetailRouteProp = RouteProp<HomeStackParamList, 'HomeDetail'>;
+// Tipo de "navigation" para esta pantalla. Sirve para ir al formulario de editar.
+type DetailNavProp = NativeStackNavigationProp<HomeStackParamList, 'HomeDetail'>;
 
 // Una fila del detalle: titulo chico arriba, valor abajo.
 interface CampoProps {
@@ -47,6 +51,7 @@ export function DetailScreen(): React.JSX.Element {
   // useRoute = leer los params que mandaron al navegar.
   const route = useRoute<DetailRouteProp>();
   const { id, name } = route.params;
+  const navigation = useNavigation<DetailNavProp>();
 
   // Selectores del store. Los hooks van ANTES de cualquier return.
   // esPrioritaria = true si este camion ya esta en la lista de prioritarios.
@@ -128,6 +133,14 @@ export function DetailScreen(): React.JSX.Element {
           {esPrioritaria ? 'Quitar de prioritarios' : 'Marcar como prioritario'}
         </Text>
       </Pressable>
+
+      {/* Boton: abre el formulario de editar con el id y la placa */}
+      <Pressable
+        style={({ pressed }) => [styles.botonEditar, pressed && styles.botonPressed]}
+        onPress={() => navigation.navigate('HomeEdit', { id, name })}
+      >
+        <Text style={styles.botonEditarTexto}>Editar recepcion</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -192,6 +205,19 @@ const styles = StyleSheet.create({
   botonQuitar: {
     backgroundColor: 'transparent',
     borderColor: COLORS.warning,
+  },
+  botonEditar: {
+    borderRadius: RADIUS.md,
+    paddingVertical: SPACING.base,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
+  botonEditarTexto: {
+    fontSize: TYPOGRAPHY.size.md,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.textPrimary,
   },
   botonPressed: {
     opacity: 0.7,
