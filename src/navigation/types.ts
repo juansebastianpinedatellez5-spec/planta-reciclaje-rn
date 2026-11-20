@@ -12,8 +12,13 @@ export type HomeStackParamList = {
     id: string;
     name: string;
   };
-  // El formulario para crear un camion no recibe datos.
+    // El formulario para crear un camion no recibe datos.
   HomeCreate: undefined;
+  // El formulario para editar recibe el id y la placa del camion.
+  HomeEdit: {
+    id: string;
+    name: string;
+  };
 };
 
 // Pestanas de abajo.
