@@ -1,13 +1,11 @@
 // PANTALLA: CreateScreen
 // Formulario para registrar un camion nuevo.
-// Envia un POST a la API con useMutation (hook useCrearRecepcion).
+// React Hook Form maneja el formulario. Zod valida. useMutation envia a la API.
 // Si sale bien, la lista se actualiza sola y vuelve a la pantalla anterior.
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  View,
   Text,
-  TextInput,
   Pressable,
   ScrollView,
   ActivityIndicator,
@@ -15,56 +13,50 @@ import {
   Platform,
   StyleSheet,
 } from 'react-native';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '../navigation/types';
-import { Material } from '../types';
+import { recepcionSchema, RecepcionFormData } from '../schemas/recepcionSchema';
+import { FormField } from '../components/FormField';
+import { SelectField } from '../components/SelectField';
 import { useCrearRecepcion } from '../hooks/useCrearRecepcion';
-import { NOMBRE_MATERIAL } from '../data/materiales';
+import { OPCIONES_MATERIAL, OPCIONES_ESTADO } from '../data/materiales';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
 type CreateScreenProps = NativeStackScreenProps<HomeStackParamList, 'HomeCreate'>;
 
-// Los 4 materiales entre los que se puede elegir.
-const MATERIALES: Material[] = ['plastico', 'carton', 'vidrio', 'metal'];
-
 export function CreateScreen({ navigation }: CreateScreenProps): React.JSX.Element {
-  // Un useState por cada campo del formulario.
-  const [placa, setPlaca] = useState<string>('');
-  const [conductor, setConductor] = useState<string>('');
-  const [material, setMaterial] = useState<Material>('plastico');
-  // El peso se guarda como texto (asi lo da el teclado) y despues se pasa a numero.
-  const [peso, setPeso] = useState<string>('');
+  // useForm maneja el formulario:
+  // control = conecta los campos | handleSubmit = valida y envia
+  // errors = errores de Zod por campo | isSubmitting = esta enviando
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RecepcionFormData>({
+    // zodResolver: usa el schema de Zod para validar.
+    resolver: zodResolver(recepcionSchema),
+    // Valores con que empieza el formulario. El peso empieza vacio.
+    defaultValues: {
+      placa: '',
+      conductor: '',
+      material: 'plastico',
+      estado: 'en_bascula',
+    },
+  });
 
-  // useMutation: crearRecepcion envia el POST.
-  // isPending = esta enviando | isError = fallo | error = el mensaje del fallo
-  const { mutate: crearRecepcion, isPending, isError, error } =
-    useCrearRecepcion();
+  // mutateAsync envia el POST y se puede esperar con await.
+  const { mutateAsync: crearRecepcion, isError, error } = useCrearRecepcion();
 
-  // Number('') es 0 y Number('abc') es NaN. En los dos casos no es mayor que 0.
-  const pesoKg = Number(peso);
-  const formularioValido =
-    placa.trim() !== '' && conductor.trim() !== '' && pesoKg > 0;
-  // El boton solo funciona si el formulario esta bien y no esta enviando.
-  const puedeEnviar = formularioValido && !isPending;
-
-  function handleSubmit(): void {
-    if (!puedeEnviar) {
-      return;
+  // Se ejecuta SOLO si Zod dice que todo esta bien. "data" ya viene validado.
+  async function onSubmit(data: RecepcionFormData): Promise<void> {
+    try {
+      await crearRecepcion({ ...data, placa: data.placa.toUpperCase() });
+      navigation.goBack();
+    } catch {
+      // Si falla, el mensaje sale abajo con isError (lo maneja la mutacion).
     }
-    crearRecepcion(
-      {
-        placa: placa.trim().toUpperCase(),
-        conductor: conductor.trim(),
-        material,
-        pesoKg,
-        // Un camion nuevo siempre empieza en la bascula.
-        estado: 'en_bascula',
-      },
-      {
-        // Se ejecuta cuando la API respondio y la lista ya se actualizo.
-        onSuccess: () => navigation.goBack(),
-      },
-    );
   }
 
   return (
@@ -76,80 +68,61 @@ export function CreateScreen({ navigation }: CreateScreenProps): React.JSX.Eleme
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Campo: placa */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Placa</Text>
-          <TextInput
-            style={styles.input}
-            value={placa}
-            onChangeText={setPlaca}
-            placeholder="Ej: SXK-421"
-            placeholderTextColor={COLORS.textSecondary}
-            autoCapitalize="characters"
-            autoCorrect={false}
-          />
-        </View>
+        <FormField
+          control={control}
+          name="placa"
+          label="Placa"
+          placeholder="Ej: SXK-421"
+          autoCapitalize="characters"
+          autoCorrect={false}
+          errorMessage={errors.placa?.message}
+        />
 
-        {/* Campo: conductor */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Conductor</Text>
-          <TextInput
-            style={styles.input}
-            value={conductor}
-            onChangeText={setConductor}
-            placeholder="Nombre del conductor"
-            placeholderTextColor={COLORS.textSecondary}
-          />
-        </View>
+        <FormField
+          control={control}
+          name="conductor"
+          label="Conductor"
+          placeholder="Nombre del conductor"
+          errorMessage={errors.conductor?.message}
+        />
 
-        {/* Campo: material (4 botones, uno queda marcado) */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Material</Text>
-          <View style={styles.chips}>
-            {MATERIALES.map((m) => (
-              <Pressable
-                key={m}
-                style={[styles.chip, material === m && styles.chipActivo]}
-                onPress={() => setMaterial(m)}
-              >
-                <Text
-                  style={[
-                    styles.chipTexto,
-                    material === m && styles.chipTextoActivo,
-                  ]}
-                >
-                  {NOMBRE_MATERIAL[m]}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+        <SelectField
+          control={control}
+          name="material"
+          label="Material"
+          options={OPCIONES_MATERIAL}
+          errorMessage={errors.material?.message}
+        />
 
-        {/* Campo: peso */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Peso neto (kg)</Text>
-          <TextInput
-            style={styles.input}
-            value={peso}
-            onChangeText={setPeso}
-            placeholder="Ej: 3200"
-            placeholderTextColor={COLORS.textSecondary}
-            keyboardType="numeric"
-          />
-        </View>
+        <FormField
+          control={control}
+          name="pesoKg"
+          label="Peso neto (kg)"
+          placeholder="Ej: 3200"
+          keyboardType="numeric"
+          errorMessage={errors.pesoKg?.message}
+        />
+
+        <SelectField
+          control={control}
+          name="estado"
+          label="Estado"
+          options={OPCIONES_ESTADO}
+          errorMessage={errors.estado?.message}
+        />
 
         {/* Si la API fallo, se muestra el mensaje */}
         {isError && (
-          <Text style={styles.error}>No se pudo crear: {error.message}</Text>
+          <Text style={styles.apiError}>No se pudo crear: {error.message}</Text>
         )}
 
-        {/* Boton enviar: se apaga si falta algo o si esta enviando */}
+        {/* handleSubmit(onSubmit)(): primero valida con Zod, despues llama onSubmit */}
         <Pressable
-          style={[styles.boton, !puedeEnviar && styles.botonApagado]}
-          onPress={handleSubmit}
-          disabled={!puedeEnviar}
+          style={[styles.boton, isSubmitting && styles.botonApagado]}
+          onPress={() => handleSubmit(onSubmit)()}
+          disabled={isSubmitting}
         >
-          {isPending ? (
+          {isSubmitting ? (
             <ActivityIndicator size="small" color={COLORS.background} />
           ) : (
             <Text style={styles.botonTexto}>Registrar camion</Text>
@@ -171,52 +144,9 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: SPACING.base,
-    gap: SPACING.base,
-  },
-  field: {
-    gap: SPACING.xs,
-  },
-  label: {
-    fontSize: TYPOGRAPHY.size.base,
-    fontWeight: TYPOGRAPHY.weight.semibold,
-    color: COLORS.textPrimary,
-  },
-  input: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.md,
-    color: COLORS.textPrimary,
-    fontSize: TYPOGRAPHY.size.base,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: SPACING.sm,
   },
-  chip: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.sm,
-  },
-  chipActivo: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
-  },
-  chipTexto: {
-    fontSize: TYPOGRAPHY.size.base,
-    color: COLORS.textSecondary,
-  },
-  chipTextoActivo: {
-    color: COLORS.background,
-    fontWeight: TYPOGRAPHY.weight.bold,
-  },
-  error: {
+  apiError: {
     fontSize: TYPOGRAPHY.size.sm,
     color: COLORS.warning,
   },
@@ -225,6 +155,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     paddingVertical: SPACING.base,
     alignItems: 'center',
+    marginTop: SPACING.sm,
   },
   botonApagado: {
     opacity: 0.4,
