@@ -11,6 +11,9 @@
     },
     "android": {
       "package": "com.sena.plantareciclaje"
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
