@@ -21,3 +21,11 @@ export interface Recepcion {
 // Lo que se manda al servidor para crear un camion.
 // Es Recepcion sin "id": el id lo pone el servidor.
 export type CrearRecepcionPayload = Omit<Recepcion, 'id'>;
+
+
+// Lo que devuelve la lista de camiones: los datos y de donde salieron.
+// "red" = vienen de la API. "cache" = vienen de la copia guardada (sin internet).
+export interface RecepcionesConOrigen {
+  recepciones: Recepcion[];
+  origen: 'red' | 'cache';
+}
