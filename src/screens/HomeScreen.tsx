@@ -1,6 +1,7 @@
 // PANTALLA: HomeScreen
 // Buscador + lista de tarjetas con FlatList.
 // Los camiones vienen de la API con useQuery.
+// Sin internet muestra la copia guardada y un aviso (banner).
 // Maneja 4 estados: cargando, error, vacio y lista.
 // Al tocar una tarjeta, navega al detalle y le manda el id y la placa.
 
@@ -45,7 +46,7 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
 
   // Lista filtrada. useMemo = solo se vuelve a calcular cuando cambia "query".
   const recepcionesFiltradas = useMemo(() => {
-    const lista = data ?? []; // si todavia no llegan datos, lista vacia
+    const lista = data?.recepciones ?? []; // si todavia no llegan datos, lista vacia
     const texto = query.trim().toLowerCase(); // minusculas = no importa si escribe mayusculas
     if (texto === '') {
       return lista; // sin texto = mostrar todo
@@ -128,27 +129,37 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
     }
 
     // 3. Todo bien: la lista (si esta vacia, sale ListEmptyComponent).
+    // Si los datos salieron de la copia guardada, se muestra el aviso arriba.
     return (
-      <FlatList
-        data={recepcionesFiltradas}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ItemSeparatorComponent={Separador}
-        ListEmptyComponent={renderEmpty}
-        ListHeaderComponent={
-          <Text style={styles.countLabel}>
-            {recepcionesFiltradas.length} recepcion
-            {recepcionesFiltradas.length !== 1 ? 'es' : ''}
-          </Text>
-        }
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        // Pull to refresh: al jalar hacia abajo vuelve a pedir los datos.
-        onRefresh={refetch}
-        refreshing={isRefetching}
-      />
+      <>
+        {data?.origen === 'cache' && (
+          <View style={styles.offlineBanner}>
+            <Text style={styles.offlineText}>
+              ⚠️ Mostrando datos sin red. Jala hacia abajo para actualizar.
+            </Text>
+          </View>
+        )}
+        <FlatList
+          data={recepcionesFiltradas}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          ItemSeparatorComponent={Separador}
+          ListEmptyComponent={renderEmpty}
+          ListHeaderComponent={
+            <Text style={styles.countLabel}>
+              {recepcionesFiltradas.length} recepcion
+              {recepcionesFiltradas.length !== 1 ? 'es' : ''}
+            </Text>
+          }
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          // Pull to refresh: al jalar hacia abajo vuelve a pedir los datos.
+          onRefresh={refetch}
+          refreshing={isRefetching}
+        />
+      </>
     );
   }
 
@@ -218,6 +229,18 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.size.base,
     color: COLORS.accent,
     fontWeight: TYPOGRAPHY.weight.semibold,
+  },
+  offlineBanner: {
+    backgroundColor: COLORS.surfaceAlt,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.warning,
+    paddingHorizontal: SPACING.base,
+    paddingVertical: SPACING.sm,
+  },
+  offlineText: {
+    fontSize: TYPOGRAPHY.size.sm,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.warning,
   },
   listContent: {
     padding: SPACING.base,

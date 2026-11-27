@@ -42,7 +42,7 @@ export function FavoritesScreen({
 
   // Del store solo salen los ids. Con ellos busco los camiones completos.
   const recepciones = useMemo(
-    () => (data ?? []).filter((r) => ids.includes(r.id)),
+     () => (data?.recepciones ?? []).filter((r) => ids.includes(r.id)),
     [data, ids],
   );
 
