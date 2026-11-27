@@ -15,6 +15,7 @@ import { DetailScreen } from '../screens/DetailScreen';
 import { CreateScreen } from '../screens/CreateScreen';
 import { EditScreen } from '../screens/EditScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
 import { COLORS, TYPOGRAPHY } from '../theme';
 import type { HomeStackParamList, RootTabParamList } from './types';
@@ -89,8 +90,10 @@ export function RootNavigator(): React.JSX.Element {
           let nombreIcono: keyof typeof Ionicons.glyphMap;
           if (route.name === 'Home') {
             nombreIcono = focused ? 'car' : 'car-outline';
-          } else {
+          } else if (route.name === 'Favorites') {
             nombreIcono = focused ? 'star' : 'star-outline';
+          } else {
+            nombreIcono = focused ? 'settings' : 'settings-outline';
           }
           return <Ionicons name={nombreIcono} size={size} color={color} />;
         },
@@ -121,6 +124,17 @@ export function RootNavigator(): React.JSX.Element {
           // Esta pestana no tiene Stack, asi que aqui si se enciende el header.
           headerShown: true,
           title: 'Camiones prioritarios',
+          ...HEADER_OPTIONS,
+        }}
+      />
+        <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: 'Ajustes',
+          // Como Prioritarias, esta pestana no tiene Stack: enciende su header.
+          headerShown: true,
+          title: 'Ajustes',
           ...HEADER_OPTIONS,
         }}
       />
