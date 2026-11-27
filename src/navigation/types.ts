@@ -26,4 +26,5 @@ export type RootTabParamList = {
   // Home guarda un Stack adentro. Por eso su tipo es NavigatorScreenParams.
   Home: NavigatorScreenParams<HomeStackParamList> | undefined;
   Favorites: undefined;
+  Settings: undefined;
 };
