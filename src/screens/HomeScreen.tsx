@@ -2,6 +2,7 @@
 // Buscador + lista de tarjetas con FlatList.
 // Los camiones vienen de la API con useQuery.
 // Sin internet muestra la copia guardada y un aviso (banner).
+// Aplica las preferencias de MMKV: orden, modo compacto y ocultar finalizados.
 // Maneja 4 estados: cargando, error, vacio y lista.
 // Al tocar una tarjeta, navega al detalle y le manda el id y la placa.
 
@@ -24,7 +25,27 @@ import type { HomeStackParamList } from '../navigation/types';
 import { Recepcion } from '../types';
 import { RecepcionCard } from '../components/RecepcionCard';
 import { useRecepciones } from '../hooks/useRecepciones';
+import { usePreferences, OrdenLista } from '../hooks/usePreferences';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
+
+// Que tan adelantado esta un camion. Sirve para ordenar por estado.
+const PESO_ESTADO: Record<Recepcion['estado'], number> = {
+  en_bascula: 0,
+  descargando: 1,
+  finalizado: 2,
+};
+
+// Ordena una lista segun la preferencia. Hace una copia: no cambia la original.
+function ordenarLista(lista: Recepcion[], orden: OrdenLista): Recepcion[] {
+  const copia = [...lista];
+  if (orden === 'peso') {
+    return copia.sort((a, b) => b.pesoKg - a.pesoKg); // el mas pesado primero
+  }
+  if (orden === 'estado') {
+    return copia.sort((a, b) => PESO_ESTADO[a.estado] - PESO_ESTADO[b.estado]);
+  }
+  return copia.sort((a, b) => a.placa.localeCompare(b.placa)); // por placa A-Z
+}
 
 // Props de esta pantalla: el Stack le da "navigation".
 type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, 'HomeList'>;
@@ -38,6 +59,9 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
   // query = lo que el usuario escribe en el buscador.
   const [query, setQuery] = useState<string>('');
 
+  // Preferencias guardadas en MMKV. Si cambian en Ajustes, esta pantalla se redibuja sola.
+  const { orden, compacto, ocultarFinalizados } = usePreferences();
+
   // Pide los camiones a la API. TanStack Query nos da el estado de la peticion:
   // data = los camiones | isLoading = primera carga | isError = fallo
   // isRefetching = recargando | refetch = volver a pedir
@@ -46,7 +70,15 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
 
   // Lista filtrada. useMemo = solo se vuelve a calcular cuando cambia "query".
   const recepcionesFiltradas = useMemo(() => {
-    const lista = data?.recepciones ?? []; // si todavia no llegan datos, lista vacia
+    // 1. Datos de la API (si todavia no llegan, lista vacia).
+    const todos = data?.recepciones ?? [];
+    // 2. Preferencia: ocultar los camiones finalizados.
+    const visibles = ocultarFinalizados
+      ? todos.filter((r) => r.estado !== 'finalizado')
+      : todos;
+    // 3. Preferencia: ordenar.
+    const lista = ordenarLista(visibles, orden);
+    // 4. Buscador.
     const texto = query.trim().toLowerCase(); // minusculas = no importa si escribe mayusculas
     if (texto === '') {
       return lista; // sin texto = mostrar todo
@@ -57,7 +89,7 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
         r.conductor.toLowerCase().includes(texto) ||
         r.material.includes(texto),
     );
-  }, [data, query]);
+  }, [data, query, orden, ocultarFinalizados]);
 
   // Al tocar una tarjeta: voy al detalle y mando el id y la placa como params.
   const handlePress = useCallback(
@@ -73,8 +105,10 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
   // renderItem: le dice a FlatList como dibujar cada fila.
   // useCallback = la funcion no se vuelve a crear en cada render.
   const renderItem: ListRenderItem<Recepcion> = useCallback(
-    ({ item }) => <RecepcionCard recepcion={item} onPress={handlePress} />,
-    [handlePress],
+    ({ item }) => (
+      <RecepcionCard recepcion={item} onPress={handlePress} compacto={compacto} />
+    ),
+    [handlePress, compacto],
   );
 
   // Mensaje cuando la lista queda vacia.
