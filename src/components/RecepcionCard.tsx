@@ -2,6 +2,7 @@
 // Una tarjeta que muestra un camion que llego a la planta.
 // Se usa en la lista y en prioritarias.
 // Si el camion es prioritario, muestra una estrella (lee el store).
+// En modo compacto no muestra la imagen ni el conductor.
 
 import React from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
@@ -18,15 +19,18 @@ import {
 interface RecepcionCardProps {
   recepcion: Recepcion;
   onPress: (recepcion: Recepcion) => void;
+  // Modo compacto: viene de las preferencias (MMKV). Si no se manda, es false.
+  compacto?: boolean;
 }
 
 export function RecepcionCard({
   recepcion,
   onPress,
+  compacto = false,
 }: RecepcionCardProps): React.JSX.Element {
   // Selector: pregunta al store solo "este camion es prioritario?" (true o false).
   // Esta tarjeta se redibuja solo si esa respuesta cambia.
-    const esPrioritaria = usePrioritariasStore((state) =>
+  const esPrioritaria = usePrioritariasStore((state) =>
     state.ids.includes(recepcion.id),
   );
 
@@ -36,15 +40,18 @@ export function RecepcionCard({
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={() => onPress(recepcion)}
     >
-      <Image
-        source={IMAGEN_MATERIAL[recepcion.material]}
-        style={styles.image}
-        resizeMode="cover"
-      />
+      {/* La imagen solo sale si NO es modo compacto */}
+      {!compacto && (
+        <Image
+          source={IMAGEN_MATERIAL[recepcion.material]}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      )}
 
       <View style={styles.body}>
         <Text style={styles.placa}>{recepcion.placa}</Text>
-        <Text style={styles.conductor}>{recepcion.conductor}</Text>
+        {!compacto && <Text style={styles.conductor}>{recepcion.conductor}</Text>}
 
         {/* Fila: material a la izquierda, peso a la derecha */}
         <View style={styles.row}>
