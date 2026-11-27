@@ -19,6 +19,7 @@ import { Recepcion } from '../types';
 import { RecepcionCard } from '../components/RecepcionCard';
 import { useRecepciones } from '../hooks/useRecepciones';
 import { usePrioritariasStore } from '../stores/prioritariasStore';
+import { usePreferences } from '../hooks/usePreferences';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
 type FavoritesScreenProps = BottomTabScreenProps<RootTabParamList, 'Favorites'>;
@@ -36,6 +37,8 @@ export function FavoritesScreen({
   const ids = usePrioritariasStore((state) => state.ids);
   // Los camiones salen de la API (misma consulta que la lista: se reutiliza el cache).
   const { data, isLoading, isError, refetch } = useRecepciones();
+    // Modo compacto (preferencia de MMKV).
+  const { compacto } = usePreferences();
   const limpiarPrioritarias = usePrioritariasStore(
     (state) => state.limpiarPrioritarias,
   );
@@ -58,8 +61,10 @@ export function FavoritesScreen({
   );
 
   const renderItem: ListRenderItem<Recepcion> = useCallback(
-    ({ item }) => <RecepcionCard recepcion={item} onPress={handlePress} />,
-    [handlePress],
+  ({ item }) => (
+    <RecepcionCard recepcion={item} onPress={handlePress} compacto={compacto} />
+  ),
+  [handlePress, compacto],
   );
 
   // Cargando la primera vez.
